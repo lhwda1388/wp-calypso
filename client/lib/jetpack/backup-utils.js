@@ -106,6 +106,27 @@ export const getMetaDiffForDailyBackup = ( logs, date ) => {
 	];
 };
 
+export const getActivitiesByType = ( logs ) => {
+	return {
+		mediaCreated: logs.filter( ( event ) => 'attachment__uploaded' === event.activityName ),
+		mediaDeleted: logs.filter( ( event ) => 'attachment__deleted' === event.activityName ),
+		posts: logs.filter(
+			( event ) =>
+				'post__published' === event.activityName || 'post__trashed' === event.activityName
+		),
+		postsCreated: logs.filter( ( event ) => 'post__published' === event.activityName ),
+		postsDeleted: logs.filter( ( event ) => 'post__trashed' === event.activityName ),
+		plugins: logs.filter(
+			( event ) =>
+				'plugin__installed' === event.activityName || 'plugin__deleted' === event.activityName
+		),
+		themes: logs.filter(
+			( event ) =>
+				'theme__installed' === event.activityName || 'theme__deleted' === event.activityName
+		),
+	};
+};
+
 export const getDailyBackupDeltas = ( logs, date ) => {
 	const changes = getEventsInDailyBackup( logs, date );
 

@@ -7,7 +7,7 @@ import React from 'react';
  * Internal dependencies
  */
 import BackupRewindFlow, { RewindFlowPurpose } from './rewind-flow';
-import BackupsPage from './main';
+import BackupsPage from './alt/main';
 import UpsellSwitch from 'calypso/components/jetpack/upsell-switch';
 import BackupUpsell from './backup-upsell';
 import WPCOMBackupUpsell from './wpcom-backup-upsell';
