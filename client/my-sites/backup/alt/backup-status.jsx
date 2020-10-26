@@ -1,7 +1,7 @@
 /**
  * External dependencies
  */
-import React, { useCallback, useMemo, useRef } from 'react';
+import React from 'react';
 import { useSelector } from 'react-redux';
 import page from 'page';
 
@@ -11,8 +11,9 @@ import page from 'page';
 import { useApplySiteOffset } from 'calypso/components/site-offset';
 import { useLocalizedMoment } from 'calypso/components/localized-moment';
 import {
-	getDailyBackupDeltas,
+	isActivityBackup,
 	isSuccessfulDailyBackup,
+	isSuccessfulRealtimeBackup,
 	INDEX_FORMAT,
 } from 'calypso/lib/jetpack/backup-utils';
 import getDoesRewindNeedCredentials from 'calypso/state/selectors/get-does-rewind-need-credentials';
@@ -25,7 +26,7 @@ import { backupMainPath } from '../paths';
 import MostRecentStatus from 'calypso/components/jetpack/daily-backup-status';
 import DatePicker from './date-picker';
 import EnableRestoresBanner from '../enable-restores-banner';
-import { useBackupAttempts, useBackupDeltas } from './hooks';
+import { useActivityLogs, useBackupAttempts, useBackupDeltas } from './hooks';
 
 const BackupStatus = ( { selectedDate } ) => {
 	const siteId = useSelector( getSelectedSiteId );
@@ -36,15 +37,16 @@ const BackupStatus = ( { selectedDate } ) => {
 	return (
 		<Wrapper selectedDate={ selectedDate }>
 			<QueryRewindCapabilities siteId={ siteId } />
-			<DailyStatus selectedDate={ selectedDate } />
-			{ /* { hasRealtime ? (
+			{ hasRealtime ? (
 				<RealtimeStatus selectedDate={ selectedDate } />
 			) : (
 				<DailyStatus selectedDate={ selectedDate } />
-			) } */ }
+			) }
 		</Wrapper>
 	);
 };
+
+const byActivityTsDescending = ( a, b ) => ( a.activityTs > b.activityTs ? -1 : 1 );
 
 const DailyStatus = ( { selectedDate } ) => {
 	const siteId = useSelector( getSelectedSiteId );
@@ -52,30 +54,25 @@ const DailyStatus = ( { selectedDate } ) => {
 	const applySiteOffset = useApplySiteOffset();
 	const moment = useLocalizedMoment();
 
-	const byMomentDescending = ( a, b ) =>
-		a.activityLocalMoment.isAfter( b.activityLocalMoment ) ? -1 : 1;
-
 	const { backupAttempts, isLoadingBackupAttempts } = useBackupAttempts( siteId, {
 		before: moment( selectedDate ).endOf( 'day' ),
+		number: 30,
 	} );
 
-	backupAttempts.forEach(
-		( attempt ) => ( attempt.activityLocalMoment = applySiteOffset( attempt.activityTs ) )
-	);
-	backupAttempts.sort( byMomentDescending );
+	backupAttempts.sort( byActivityTsDescending );
 
-	const lastAttemptOnDate = backupAttempts.filter( ( backup ) =>
-		backup.activityLocalMoment.isSame( selectedDate, 'day' )
-	)[ 0 ];
+	const lastBackupAttempt = backupAttempts
+		.filter( ( backup ) => applySiteOffset( backup.activityTs ).isSame( selectedDate, 'day' ) )
+		.sort( byActivityTsDescending )[ 0 ];
 	const lastSuccessfulPastAttempt = backupAttempts
 		.filter( isSuccessfulDailyBackup )
 		.filter(
-			( backup ) => backup.activityLocalMoment < moment( selectedDate ).startOf( 'day' )
+			( backup ) => applySiteOffset( backup.activityTs ) < moment( selectedDate ).startOf( 'day' )
 		)[ 0 ];
 
 	const { deltas, isLoadingDeltas } = useBackupDeltas( siteId, {
-		before: lastAttemptOnDate?.activityLocalMoment,
-		after: lastSuccessfulPastAttempt?.activityLocalMoment,
+		before: lastBackupAttempt && applySiteOffset( lastBackupAttempt.activityTs ),
+		after: lastSuccessfulPastAttempt && applySiteOffset( lastSuccessfulPastAttempt.activityTs ),
 	} );
 
 	if ( isLoadingBackupAttempts || isLoadingDeltas ) {
@@ -86,51 +83,79 @@ const DailyStatus = ( { selectedDate } ) => {
 		<MostRecentStatus
 			{ ...{
 				selectedDate,
-				lastBackupDate: lastSuccessfulPastAttempt?.activityLocalMoment,
-				backup: lastAttemptOnDate,
+				lastBackupDate:
+					lastSuccessfulPastAttempt && applySiteOffset( lastSuccessfulPastAttempt.activityTs ),
+				backup: lastBackupAttempt,
 				deltas,
 			} }
 		/>
 	);
 };
 
-// const RealtimeStatus = ( { selectedDate } ) => {
-// 	const siteSlug = useSelector( getSelectedSiteSlug );
-// 	const canRestore = useSelector( ( state ) => {
-// 		const rewindState = getRewindState( state, siteId );
-// 		return (
-// 			rewindState?.state === 'active' &&
-// 			! [ 'queued', 'running' ].includes( rewindState?.rewind?.status )
-// 		);
-// 	} );
+const RealtimeStatus = ( { selectedDate } ) => {
+	const siteId = useSelector( getSelectedSiteId );
 
-// 	return (
-// 		<>
-// 			<MostRecentStatus
-// 				{ ...{
-// 					selectedDate,
-// 					lastBackupDate: lastDateAvailable,
-// 					backup: mostRecentBackupForDate,
-// 					deltas,
-// 				} }
-// 			/>
+	const applySiteOffset = useApplySiteOffset();
+	const moment = useLocalizedMoment();
 
-// 			{ lastBackup && (
-// 				<BackupDelta
-// 					{ ...{
-// 						deltas,
-// 						realtimeBackups,
-// 						needCredentials,
-// 						allowRestore: canRestore,
-// 						moment,
-// 						siteSlug,
-// 						isToday: today.isSame( selectedDate, 'day' ),
-// 					} }
-// 				/>
-// 			) }
-// 		</>
-// 	);
-// };
+	const {
+		backupAttempts: previousFullBackupAttempts,
+		isLoadingAttempts: isLoadingPreviousAttempts,
+	} = useBackupAttempts( siteId, {
+		before: moment( selectedDate ).startOf( 'day' ),
+		number: 30,
+	} );
+
+	const { activityLogs, isLoadingActivityLogs } = useActivityLogs( siteId, {
+		before: moment( selectedDate ).endOf( 'day' ).toISOString(),
+		after: moment( selectedDate ).startOf( 'day' ).toISOString(),
+	} );
+
+	if ( isLoadingActivityLogs || isLoadingPreviousAttempts ) {
+		return <div className="backup-placeholder__daily-backup-status" />;
+	}
+
+	activityLogs.sort( byActivityTsDescending );
+
+	const lastBackupAttempt = activityLogs
+		.filter( ( activity ) => applySiteOffset( activity.activityTs ).isSame( selectedDate, 'day' ) )
+		.filter( ( activity ) => isActivityBackup( activity ) || activity.activityIsRewindable )
+		.sort( byActivityTsDescending )[ 0 ];
+	const lastSuccessfulPastAttempt = previousFullBackupAttempts
+		.filter( isSuccessfulDailyBackup )
+		.filter(
+			( backup ) => applySiteOffset( backup.activityTs ) < moment( selectedDate ).startOf( 'day' )
+		)[ 0 ];
+
+	const otherRealtimeBackupActivities = activityLogs
+		.filter(
+			( activity ) => isActivityBackup( activity ) || isSuccessfulRealtimeBackup( activity )
+		)
+		.filter( ( activity ) => activity.activityId !== lastBackupAttempt?.activityId )
+		.filter( ( activity ) => applySiteOffset( activity.activityTs ).isSame( selectedDate, 'day' ) );
+
+	return (
+		<>
+			<MostRecentStatus
+				{ ...{
+					selectedDate,
+					lastBackupDate:
+						lastSuccessfulPastAttempt && applySiteOffset( lastSuccessfulPastAttempt.activityTs ),
+					backup: lastBackupAttempt,
+				} }
+			/>
+
+			{ lastBackupAttempt && (
+				<BackupDelta
+					{ ...{
+						realtimeBackups: otherRealtimeBackupActivities,
+						isToday: moment().isSame( selectedDate, 'day' ),
+					} }
+				/>
+			) }
+		</>
+	);
+};
 
 const Wrapper = ( { selectedDate, children } ) => {
 	const siteId = useSelector( getSelectedSiteId );

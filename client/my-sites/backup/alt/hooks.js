@@ -33,17 +33,7 @@ const DELTA_ACTIVITIES = [
 
 const isLoading = ( response ) => [ 'uninitialized', 'pending' ].includes( response.state );
 
-export const useBackupAttempts = ( siteId, { before, after, number = 1000 } = {} ) => {
-	const filter = useMemo(
-		() => ( {
-			name: BACKUP_ATTEMPT_ACTIVITIES,
-			before: before ? before.toISOString() : undefined,
-			after: after ? after.toISOString() : undefined,
-			number,
-		} ),
-		[ before, after, number ]
-	);
-
+export const useActivityLogs = ( siteId, filter ) => {
 	useEffect( () => {
 		requestActivityLogs( siteId, filter );
 	}, [ siteId, filter ] );
@@ -52,8 +42,27 @@ export const useBackupAttempts = ( siteId, { before, after, number = 1000 } = {}
 	const response = useSelector( () => getHttpData( requestId ) );
 
 	return {
-		isLoadingBackupAttempts: isLoading( response ),
-		backupAttempts: response.data || [],
+		isLoadingActivityLogs: isLoading( response ),
+		activityLogs: response.data || [],
+	};
+};
+
+export const useBackupAttempts = ( siteId, { before, after, number = 1000 } = {} ) => {
+	const filter = useMemo(
+		() => ( {
+			name: BACKUP_ATTEMPT_ACTIVITIES,
+			before: before ? before.toISOString() : undefined,
+			after: after ? after.toISOString() : undefined,
+			aggregate: false,
+			number,
+		} ),
+		[ before, after, number ]
+	);
+
+	const { activityLogs, isLoadingActivityLogs } = useActivityLogs( siteId, filter );
+	return {
+		isLoadingBackupAttempts: isLoadingActivityLogs,
+		backupAttempts: activityLogs,
 	};
 };
 
