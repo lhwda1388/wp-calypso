@@ -106,7 +106,26 @@ export const getMetaDiffForDailyBackup = ( logs, date ) => {
 	];
 };
 
-export const getActivitiesByType = ( logs ) => {
+export const getDeltaActivities = ( logs ) => {
+	const DELTA_ACTIVITIES = [
+		'attachment__uploaded',
+		// 'attachment__updated',
+		'attachment__deleted',
+		'post__published',
+		'post__trashed',
+		'post__published',
+		// 'post__updated',
+		'post__trashed',
+		'plugin__installed',
+		'plugin__deleted',
+		'theme__installed',
+		'theme__deleted',
+	];
+
+	return logs.filter( ( { activityName } ) => DELTA_ACTIVITIES.includes( activityName ) );
+};
+
+export const getDeltaActivitiesByType = ( logs ) => {
 	return {
 		mediaCreated: logs.filter( ( event ) => 'attachment__uploaded' === event.activityName ),
 		mediaDeleted: logs.filter( ( event ) => 'attachment__deleted' === event.activityName ),
@@ -129,44 +148,12 @@ export const getActivitiesByType = ( logs ) => {
 
 export const getDailyBackupDeltas = ( logs, date ) => {
 	const changes = getEventsInDailyBackup( logs, date );
-
-	return {
-		mediaCreated: changes.filter( ( event ) => 'attachment__uploaded' === event.activityName ),
-		mediaDeleted: changes.filter( ( event ) => 'attachment__deleted' === event.activityName ),
-		posts: changes.filter(
-			( event ) =>
-				'post__published' === event.activityName || 'post__trashed' === event.activityName
-		),
-		postsCreated: changes.filter( ( event ) => 'post__published' === event.activityName ),
-		postsDeleted: changes.filter( ( event ) => 'post__trashed' === event.activityName ),
-		plugins: changes.filter(
-			( event ) =>
-				'plugin__installed' === event.activityName || 'plugin__deleted' === event.activityName
-		),
-		themes: changes.filter(
-			( event ) =>
-				'theme__installed' === event.activityName || 'theme__deleted' === event.activityName
-		),
-	};
+	return getDeltaActivitiesByType( changes );
 };
 
 export const getRawDailyBackupDeltas = ( logs, date ) => {
-	return getEventsInDailyBackup( logs, date ).filter( ( { activityName } ) =>
-		[
-			'attachment__uploaded',
-			// 'attachment__updated',
-			'attachment__deleted',
-			'post__published',
-			'post__trashed',
-			'post__published',
-			// 'post__updated',
-			'post__trashed',
-			'plugin__installed',
-			'plugin__deleted',
-			'theme__installed',
-			'theme__deleted',
-		].includes( activityName )
-	);
+	const events = getEventsInDailyBackup( logs, date );
+	return getDeltaActivities( events );
 };
 
 /**

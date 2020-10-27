@@ -19,7 +19,7 @@ export const filterStateToApiQuery = ( filter ) => {
 		filter.group && { group: filter.group },
 		filter.notGroup && { not_group: filter.notGroup },
 		filter.name && { name: filter.name },
-		{ number: 1000 }
+		{ number: filter.number > 0 ? filter.number : 1000 }
 	);
 };
 
