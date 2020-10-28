@@ -7,13 +7,12 @@ import { useSelector } from 'react-redux';
 /**
  * Internal dependencies
  */
-import { useApplySiteOffset } from 'calypso/components/site-offset';
 import { useLocalizedMoment } from 'calypso/components/localized-moment';
-import { isActivityBackup, isSuccessfulRealtimeBackup } from 'calypso/lib/jetpack/backup-utils';
+import { useApplySiteOffset } from 'calypso/components/site-offset';
 import getSelectedSiteId from 'calypso/state/ui/selectors/get-selected-site-id';
 import MostRecentStatus from 'calypso/components/jetpack/daily-backup-status/index-alternate';
 import BackupCard from 'calypso/components/jetpack/backup-card';
-import { useActivityLogs, useLatestBackupAttempt, useRawBackupDeltas } from './hooks';
+import { useDailyBackupStatus, useRealtimeBackupStatus } from './hooks';
 
 export const DailyStatus = ( { selectedDate } ) => {
 	const siteId = useSelector( getSelectedSiteId );
@@ -21,43 +20,26 @@ export const DailyStatus = ( { selectedDate } ) => {
 	const applySiteOffset = useApplySiteOffset();
 	const moment = useLocalizedMoment();
 
-	const lastBackupBeforeDate = useLatestBackupAttempt( siteId, {
-		before: moment( selectedDate ).startOf( 'day' ),
-		successOnly: true,
-	} );
-	const lastAttemptOnDate = useLatestBackupAttempt( siteId, {
-		after: moment( selectedDate ).startOf( 'day' ),
-		before: moment( selectedDate ).endOf( 'day' ),
-	} );
-	const mostRecentBackupEver = useLatestBackupAttempt( siteId, {
-		successOnly: true,
-	} );
+	const {
+		isLoading,
+		mostRecentBackupEver,
+		lastBackupBeforeDate,
+		lastBackupAttemptOnDate,
+		rawDeltas,
+	} = useDailyBackupStatus( siteId, selectedDate );
 
-	const hasPreviousBackup = ! lastBackupBeforeDate.isLoading && lastBackupBeforeDate.backupAttempt;
-	const successfulLastAttempt =
-		! lastAttemptOnDate.isLoading && lastAttemptOnDate.backupAttempt?.activityIsRewindable;
-	const { deltas, isLoadingDeltas } = useRawBackupDeltas(
-		siteId,
-		hasPreviousBackup &&
-			successfulLastAttempt && {
-				after: moment( lastBackupBeforeDate.backupAttempt.activityTs ),
-				before: moment( lastAttemptOnDate.backupAttempt.activityTs ),
-			}
-	);
+	// Eagerly cache requests for the days before and after our selected date, to make navigation smoother
+	useDailyBackupStatus( siteId, moment( selectedDate ).subtract( 1, 'day' ) );
+	useDailyBackupStatus( siteId, moment( selectedDate ).add( 1, 'day' ) );
 
-	if (
-		lastBackupBeforeDate.isLoading ||
-		lastAttemptOnDate.isLoading ||
-		mostRecentBackupEver.isLoading ||
-		isLoadingDeltas
-	) {
+	if ( isLoading ) {
 		return <div className="backup-placeholder__daily-backup-status" />;
 	}
 
 	const isLatestBackup =
-		lastAttemptOnDate.backupAttempt &&
-		mostRecentBackupEver.backupAttempt &&
-		lastAttemptOnDate.backupAttempt.rewindId === mostRecentBackupEver.backupAttempt.rewindId;
+		lastBackupAttemptOnDate &&
+		mostRecentBackupEver &&
+		lastBackupAttemptOnDate.activityId === mostRecentBackupEver.activityId;
 
 	return (
 		<ul className="backup__card-list">
@@ -66,11 +48,10 @@ export const DailyStatus = ( { selectedDate } ) => {
 					{ ...{
 						selectedDate,
 						lastBackupDate:
-							lastBackupBeforeDate.backupAttempt &&
-							applySiteOffset( lastBackupBeforeDate.backupAttempt.activityTs ),
-						backup: lastAttemptOnDate.backupAttempt,
+							lastBackupBeforeDate && applySiteOffset( lastBackupBeforeDate.activityTs ),
+						backup: lastBackupAttemptOnDate,
 						isLatestBackup,
-						dailyDeltas: deltas,
+						dailyDeltas: rawDeltas,
 					} }
 				/>
 			</li>
@@ -84,51 +65,27 @@ export const RealtimeStatus = ( { selectedDate } ) => {
 	const applySiteOffset = useApplySiteOffset();
 	const moment = useLocalizedMoment();
 
-	const { activityLogs, isLoadingActivityLogs } = useActivityLogs( siteId, {
-		before: moment( selectedDate ).endOf( 'day' ).toISOString(),
-		after: moment( selectedDate ).startOf( 'day' ).toISOString(),
-	} );
+	const {
+		isLoading,
+		mostRecentBackupEver,
+		lastBackupBeforeDate,
+		lastBackupAttemptOnDate,
+		earlierBackupAttemptsOnDate,
+		rawDeltas,
+	} = useRealtimeBackupStatus( siteId, selectedDate );
 
-	const lastBackupBeforeDate = useLatestBackupAttempt( siteId, {
-		before: moment( selectedDate ).startOf( 'day' ),
-		successOnly: true,
-	} );
+	// Eagerly cache requests for the days before and after our selected date, to make navigation smoother
+	useRealtimeBackupStatus( siteId, moment( selectedDate ).subtract( 1, 'day' ) );
+	useRealtimeBackupStatus( siteId, moment( selectedDate ).add( 1, 'day' ) );
 
-	const mostRecentBackupEver = useLatestBackupAttempt( siteId, {
-		successOnly: true,
-	} );
-
-	const backupAttemptsOnDate = activityLogs.filter(
-		( activity ) => isActivityBackup( activity ) || isSuccessfulRealtimeBackup( activity )
-	);
-	const lastAttemptOnDate = backupAttemptsOnDate[ 0 ];
-
-	const hasPreviousBackup = ! lastBackupBeforeDate.isLoading && lastBackupBeforeDate.backupAttempt;
-	const successfulLastAttempt =
-		lastAttemptOnDate && isSuccessfulRealtimeBackup( lastAttemptOnDate );
-
-	const { deltas, isLoadingDeltas } = useRawBackupDeltas(
-		siteId,
-		hasPreviousBackup &&
-			successfulLastAttempt && {
-				before: applySiteOffset( lastAttemptOnDate.activityTs ),
-				after: applySiteOffset( lastBackupBeforeDate.backupAttempt.activityTs ),
-			}
-	);
-
-	if (
-		isLoadingActivityLogs ||
-		lastBackupBeforeDate.isLoading ||
-		mostRecentBackupEver.isLoading ||
-		isLoadingDeltas
-	) {
+	if ( isLoading ) {
 		return <div className="backup-placeholder__daily-backup-status" />;
 	}
 
 	const isLatestBackup =
-		mostRecentBackupEver.backupAttempt &&
-		lastAttemptOnDate &&
-		mostRecentBackupEver.backupAttempt.activityId === lastAttemptOnDate.activityId;
+		mostRecentBackupEver &&
+		lastBackupAttemptOnDate &&
+		mostRecentBackupEver.activityId === lastBackupAttemptOnDate.activityId;
 
 	return (
 		<ul className="backup__card-list">
@@ -137,16 +94,15 @@ export const RealtimeStatus = ( { selectedDate } ) => {
 					{ ...{
 						selectedDate,
 						lastBackupDate:
-							lastBackupBeforeDate.backupAttempt &&
-							applySiteOffset( lastBackupBeforeDate.backupAttempt.activityTs ),
-						backup: lastAttemptOnDate,
+							lastBackupBeforeDate && applySiteOffset( lastBackupBeforeDate.activityTs ),
+						backup: lastBackupAttemptOnDate,
 						isLatestBackup,
-						dailyDeltas: deltas,
+						dailyDeltas: rawDeltas,
 					} }
 				/>
 			</li>
 
-			{ backupAttemptsOnDate.slice( 1 ).map( ( activity ) => (
+			{ earlierBackupAttemptsOnDate.map( ( activity ) => (
 				<li key={ activity.activityId }>
 					<BackupCard activity={ activity } />
 				</li>
