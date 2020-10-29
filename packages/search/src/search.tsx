@@ -55,6 +55,7 @@ type Props = {
 	hideClose: boolean;
 	hideOpenIcon: boolean;
 	inputLabel?: string;
+	openIconSide?: 'left' | 'right';
 	maxLength?: number;
 	minLength?: number;
 	onBlur?: ( event: FocusEvent< HTMLInputElement > ) => void;
@@ -104,6 +105,7 @@ class Search extends React.Component< Props, State > {
 		onSearchChange: noop,
 		onSearchOpen: noop,
 		onSearchClose: noop,
+		openIconSide: 'left',
 		//undefined value for overlayStyling is an optimization that will
 		//disable overlay scrolling calculation when no overlay is provided.
 		overlayStyling: undefined,
@@ -335,7 +337,7 @@ class Search extends React.Component< Props, State > {
 		return (
 			<div dir={ this.props.dir } className={ searchClass } role="search">
 				<Spinner />
-				{ this.renderOpenIcon() }
+				{ this.props.openIconSide === 'left' && this.renderOpenIcon() }
 				<form className={ fadeClass } action="." onSubmit={ this.handleSubmit }>
 					<input
 						type="search"
@@ -364,7 +366,7 @@ class Search extends React.Component< Props, State > {
 					/>
 					{ this.renderStylingDiv() }
 				</form>
-				{ this.closeButton() }
+				{ this.props.openIconSide === 'right' ? this.renderOpenIcon() : this.closeButton() }
 			</div>
 		);
 	}
