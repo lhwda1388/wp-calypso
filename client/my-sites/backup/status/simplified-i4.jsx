@@ -10,9 +10,15 @@ import { useSelector } from 'react-redux';
 import { useLocalizedMoment } from 'calypso/components/localized-moment';
 import { useApplySiteOffset } from 'calypso/components/site-offset';
 import getSelectedSiteId from 'calypso/state/ui/selectors/get-selected-site-id';
-import MostRecentStatus from 'calypso/components/jetpack/daily-backup-status/index-alternate';
 import BackupCard from 'calypso/components/jetpack/backup-card';
+import BackupPlaceholder from 'calypso/components/jetpack/backup-placeholder';
+import MostRecentStatus from 'calypso/components/jetpack/daily-backup-status/index-alternate';
 import { useDailyBackupStatus, useRealtimeBackupStatus } from './hooks';
+
+/**
+ * Style dependencies
+ */
+import './style.scss';
 
 export const DailyStatus = ( { selectedDate } ) => {
 	const siteId = useSelector( getSelectedSiteId );
@@ -33,7 +39,7 @@ export const DailyStatus = ( { selectedDate } ) => {
 	useDailyBackupStatus( siteId, moment( selectedDate ).add( 1, 'day' ) );
 
 	if ( isLoading ) {
-		return <div className="backup-placeholder__daily-backup-status" />;
+		return <BackupPlaceholder showDatePicker={ false } />;
 	}
 
 	const isLatestBackup =
@@ -42,7 +48,7 @@ export const DailyStatus = ( { selectedDate } ) => {
 		lastBackupAttemptOnDate.activityId === mostRecentBackupEver.activityId;
 
 	return (
-		<ul className="backup__card-list">
+		<ul className="status__card-list">
 			<li key="daily-backup-status">
 				<MostRecentStatus
 					{ ...{
@@ -79,7 +85,7 @@ export const RealtimeStatus = ( { selectedDate } ) => {
 	useRealtimeBackupStatus( siteId, moment( selectedDate ).add( 1, 'day' ) );
 
 	if ( isLoading ) {
-		return <div className="backup-placeholder__daily-backup-status" />;
+		return <BackupPlaceholder showDatePicker={ false } />;
 	}
 
 	const isLatestBackup =
@@ -88,7 +94,7 @@ export const RealtimeStatus = ( { selectedDate } ) => {
 		mostRecentBackupEver.activityId === lastBackupAttemptOnDate.activityId;
 
 	return (
-		<ul className="backup__card-list">
+		<ul className="status__card-list">
 			<li key="daily-backup-status">
 				<MostRecentStatus
 					{ ...{

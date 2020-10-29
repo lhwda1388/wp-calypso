@@ -11,8 +11,14 @@ import { useApplySiteOffset } from 'calypso/components/site-offset';
 import { useLocalizedMoment } from 'calypso/components/localized-moment';
 import getSelectedSiteId from 'calypso/state/ui/selectors/get-selected-site-id';
 import BackupDelta from 'calypso/components/jetpack/backup-delta';
+import BackupPlaceholder from 'calypso/components/jetpack/backup-placeholder';
 import MostRecentStatus from 'calypso/components/jetpack/daily-backup-status';
 import { useDailyBackupStatus, useRealtimeBackupStatus } from './hooks';
+
+/**
+ * Style dependencies
+ */
+import './style.scss';
 
 export const DailyStatus = ( { selectedDate } ) => {
 	const siteId = useSelector( getSelectedSiteId );
@@ -30,7 +36,7 @@ export const DailyStatus = ( { selectedDate } ) => {
 	useDailyBackupStatus( siteId, moment( selectedDate ).add( 1, 'day' ) );
 
 	if ( isLoading ) {
-		return <div className="backup-placeholder__daily-backup-status" />;
+		return <BackupPlaceholder showDatePicker={ false } />;
 	}
 
 	return (
@@ -63,7 +69,7 @@ export const RealtimeStatus = ( { selectedDate } ) => {
 	useRealtimeBackupStatus( siteId, moment( selectedDate ).add( 1, 'day' ) );
 
 	if ( isLoading ) {
-		return <div className="backup-placeholder__daily-backup-status" />;
+		return <BackupPlaceholder showDatePicker={ false } />;
 	}
 
 	return (
