@@ -2,14 +2,14 @@
  * External dependencies
  */
 import { Title } from '@automattic/onboarding';
-import { useSelect } from '@wordpress/data';
+import { useDispatch, useSelect } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
 import { TextControl, SVG, Path } from '@wordpress/components';
 import * as React from 'react';
 import DomainPicker from '@automattic/domain-picker';
 import { useSite, useDomainSearch } from '../hooks';
+import { SITE_STORE } from '../stores';
 import { Icon, check } from '@wordpress/icons';
-
 import './styles.scss';
 
 const bulb = (
@@ -23,12 +23,14 @@ function noop( ...args: unknown[] ) {
 }
 
 const FocusedLaunch: React.FunctionComponent = () => {
-	const { getSite } = useSelect( ( select ) => select( 'core' ) ) as any;
-	const title = getSite()?.title;
-
 	const site = useSite();
 
-	const [ siteTitle, setSiteTitle ] = React.useState( title );
+	const siteTitle = useSelect( ( select ) =>
+		select( SITE_STORE ).getSiteTitle( window._currentSiteId )
+	);
+
+	const { setSiteTitle } = useDispatch( SITE_STORE );
+
 	const [ siteDomainName ] = React.useState( site.currentDomainName );
 	const domainSearch = useDomainSearch();
 
@@ -54,8 +56,8 @@ const FocusedLaunch: React.FunctionComponent = () => {
 									{ __( '1. Name your site', 'launch' ) }
 								</label>
 							}
-							value={ siteTitle }
-							onChange={ ( value ) => setSiteTitle( value ) }
+							value={ siteTitle || '' }
+							onChange={ ( value ) => setSiteTitle( window._currentSiteId, value, 100 ) }
 							// eslint-disable-next-line jsx-a11y/no-autofocus
 							autoFocus={ true }
 						/>
@@ -80,7 +82,7 @@ const FocusedLaunch: React.FunctionComponent = () => {
 							}
 							existingSubdomain={ siteDomainName }
 							currentDomain={ siteDomainName }
-							onDomainSelect={ setSiteTitle }
+							onDomainSelect={ noop }
 							initialDomainSearch={ domainSearch }
 							showSearchField={ false }
 							analyticsFlowId="focused-launch"

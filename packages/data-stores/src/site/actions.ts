@@ -127,6 +127,9 @@ export function createActions( clientCreds: WpcomClientCredentials ) {
 
 	function* setSiteTitle( siteId: number, title: string ) {
 		try {
+			// update the UI optimistically
+			yield receiveSiteTitle( siteId, title );
+
 			// extract this into its own function as a generic settings setter
 			yield wpcomRequest( {
 				path: `/sites/${ encodeURIComponent( siteId ) }/settings`,
@@ -134,8 +137,9 @@ export function createActions( clientCreds: WpcomClientCredentials ) {
 				body: { blogname: title },
 				method: 'POST',
 			} );
-			yield receiveSiteTitle( siteId, title );
-		} catch ( e ) {}
+		} catch ( e ) {
+			// we need to find a way to communicate errors
+		}
 	}
 
 	return {
