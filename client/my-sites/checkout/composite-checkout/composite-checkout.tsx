@@ -438,7 +438,7 @@ export default function CompositeCheckout( {
 
 	const { storedCards, isLoading: isLoadingStoredCards, error: storedCardsError } = useStoredCards(
 		getStoredCards || wpcomGetStoredCards,
-		isLoggedOutCart
+		Boolean( isLoggedOutCart )
 	);
 
 	useActOnceOnStrings( [ storedCardsError ].filter( doesValueExist ), ( messages ) => {
