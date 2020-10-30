@@ -76,7 +76,7 @@ export interface StripeData {
 	stripe: null | Stripe;
 	stripeConfiguration: null | StripeConfiguration;
 	isStripeLoading: boolean;
-	stripeLoadingError: undefined | null | string;
+	stripeLoadingError: undefined | null | Error;
 	setStripeError: SetStripeError;
 }
 
