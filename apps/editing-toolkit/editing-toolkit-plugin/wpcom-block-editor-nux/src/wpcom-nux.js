@@ -58,7 +58,7 @@ function WpcomNux() {
 
 	/* @TODO: the copy, images, and slides will eventually be the same for all sites. `isGutenboarding` is only needed right now to show the Privacy slide */
 	const isGutenboarding = !! window.calypsoifyGutenberg?.isGutenboarding;
-	const pages = getWpcomNuxPages( isGutenboarding );
+	const nuxPages = getWpcomNuxPages( isGutenboarding );
 	return (
 		<Guide
 			className="wpcom-block-editor-nux"
@@ -66,11 +66,11 @@ function WpcomNux() {
 			finishButtonText={ __( 'Get started', 'full-site-editing' ) }
 			onFinish={ dismissWpcomNux }
 		>
-			{ pages.map( ( nuxPage, index ) => (
+			{ nuxPages.map( ( nuxPage, index ) => (
 				<NuxPage
 					key={ nuxPage.heading }
 					pageNumber={ index + 1 }
-					isLastPage={ index === pages.length - 1 }
+					isLastPage={ index === nuxPages.length - 1 }
 					{ ...nuxPage }
 				/>
 			) ) }
