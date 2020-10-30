@@ -18,6 +18,7 @@ import { getSelectedSite } from 'calypso/state/ui/selectors';
 import getCartKey from 'calypso/my-sites/checkout/get-cart-key';
 import type { SiteData } from 'calypso/state/ui/selectors/site-data';
 import userFactory from 'calypso/lib/user';
+import { getCurrentUserLocale } from 'calypso/state/current-user/selectors';
 
 /**
  * Style dependencies
@@ -72,7 +73,10 @@ const EditorCheckoutModal = ( props: Props ) => {
 			icon={ <Icon icon={ wordpress } size={ 36 } /> }
 		>
 			<ShoppingCartProvider cartKey={ cartKey } getCart={ wpcomGetCart } setCart={ wpcomSetCart }>
-				<StripeHookProvider fetchStripeConfiguration={ fetchStripeConfigurationWpcom }>
+				<StripeHookProvider
+					fetchStripeConfiguration={ fetchStripeConfigurationWpcom }
+					locale={ props.locale }
+				>
 					<CompositeCheckout
 						isInEditor
 						siteId={ site.ID }
@@ -90,6 +94,7 @@ type Props = {
 	cartData: RequestCart;
 	onClose: () => void;
 	isOpen: boolean;
+	locale: string | undefined;
 };
 
 EditorCheckoutModal.defaultProps = {
@@ -100,4 +105,5 @@ EditorCheckoutModal.defaultProps = {
 
 export default connect( ( state ) => ( {
 	site: getSelectedSite( state ),
+	locale: getCurrentUserLocale( state ),
 } ) )( EditorCheckoutModal );
