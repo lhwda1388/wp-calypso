@@ -69,6 +69,7 @@ export type SelectorProductCost = {
 };
 
 export type SelectorProductFeaturesItem = {
+	slug: string;
 	icon?:
 		| string
 		| {
@@ -78,6 +79,7 @@ export type SelectorProductFeaturesItem = {
 	text: TranslateResult;
 	description?: TranslateResult;
 	subitems?: SelectorProductFeaturesItem[];
+	isHighlighted?: boolean;
 };
 
 export type SelectorProductFeaturesSection = {

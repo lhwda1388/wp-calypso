@@ -342,8 +342,8 @@ const ServerCredentialsForm: FunctionComponent< Props > = ( {
 					onChange={ handleFormChange }
 					disabled={ disabled }
 				>
-					<option value="ssh">{ translate( 'SSH/SFTP' ) }</option>
 					<option value="ftp">{ translate( 'FTP' ) }</option>
+					<option value="ssh">{ translate( 'SSH/SFTP' ) }</option>
 				</FormSelect>
 			</FormFieldset>
 
@@ -475,7 +475,9 @@ const ServerCredentialsForm: FunctionComponent< Props > = ( {
 
 			{ formMode === FormMode.Password ? renderPasswordForm() : renderPrivateKeyForm() }
 
-			<FormFieldset className="credentials-form__buttons">{ children }</FormFieldset>
+			<FormFieldset className="credentials-form__buttons">
+				<div class="credentials-form__buttons_flex">{ children }</div>
+			</FormFieldset>
 		</div>
 	);
 };

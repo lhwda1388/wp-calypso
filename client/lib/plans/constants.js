@@ -21,12 +21,15 @@ import {
 export const PLAN_BUSINESS_MONTHLY = 'business-bundle-monthly';
 export const PLAN_BUSINESS = 'business-bundle';
 export const PLAN_BUSINESS_2_YEARS = 'business-bundle-2y';
+export const PLAN_PREMIUM_MONTHLY = 'value_bundle_monthly';
 export const PLAN_PREMIUM = 'value_bundle';
 export const PLAN_PREMIUM_2_YEARS = 'value_bundle-2y';
+export const PLAN_PERSONAL_MONTHLY = 'personal-bundle-monthly';
 export const PLAN_PERSONAL = 'personal-bundle';
 export const PLAN_PERSONAL_2_YEARS = 'personal-bundle-2y';
 export const PLAN_BLOGGER = 'blogger-bundle';
 export const PLAN_BLOGGER_2_YEARS = 'blogger-bundle-2y';
+export const PLAN_ECOMMERCE_MONTHLY = 'ecommerce-bundle-monthly';
 export const PLAN_ECOMMERCE = 'ecommerce-bundle';
 export const PLAN_ECOMMERCE_2_YEARS = 'ecommerce-bundle-2y';
 export const PLAN_FREE = 'free_plan';
@@ -54,6 +57,13 @@ export const PLAN_BUSINESS_2Y_ONBOARDING_EXPIRE = '2022-07-31T00:00:00+00:00';
 
 export const NEW_PLANS = [];
 export const BEST_VALUE_PLANS = [ PLAN_JETPACK_PREMIUM, PLAN_JETPACK_PREMIUM_MONTHLY ];
+
+export const WPCOM_MONTHLY_PLANS = [
+	PLAN_BUSINESS_MONTHLY,
+	PLAN_PREMIUM_MONTHLY,
+	PLAN_PERSONAL_MONTHLY,
+	PLAN_ECOMMERCE_MONTHLY,
+];
 
 export const JETPACK_MONTHLY_PLANS = [
 	PLAN_JETPACK_PREMIUM_MONTHLY,
@@ -236,6 +246,7 @@ export const FEATURE_PRODUCT_BACKUP_DAILY_V2 = Symbol();
 export const FEATURE_PRODUCT_BACKUP_REALTIME_V2 = Symbol();
 export const FEATURE_SCAN_V2 = Symbol();
 export const FEATURE_PRODUCT_SCAN_V2 = Symbol();
+export const FEATURE_PRODUCT_SCAN_V2_NO_SLIDEOUT = Symbol();
 export const FEATURE_PRODUCT_SCAN_DAILY_V2 = Symbol();
 export const FEATURE_PRODUCT_SCAN_REALTIME_V2 = Symbol();
 export const FEATURE_ANTISPAM_V2 = Symbol();
@@ -245,6 +256,8 @@ export const FEATURE_ACTIVITY_LOG_1_YEAR_V2 = Symbol();
 export const FEATURE_ACTIVITY_LOG_30_DAYS_V2 = Symbol();
 export const FEATURE_SEARCH_V2 = Symbol();
 export const FEATURE_PRODUCT_SEARCH_V2 = Symbol();
+export const FEATURE_PLAN_SECURITY_DAILY = Symbol();
+export const FEATURE_PLAN_SECURITY_REALTIME = Symbol();
 export const FEATURE_VIDEO_HOSTING_V2 = Symbol();
 export const FEATURE_CRM_V2 = Symbol();
 export const FEATURE_CRM_LEADS_AND_FUNNEL = Symbol();
@@ -289,7 +302,7 @@ export const TYPE_ALL = 'TYPE_ALL';
 export const TYPE_P2_PLUS = 'TYPE_P2_PLUS';
 
 export function isMonthly( plan ) {
-	return plan === PLAN_BUSINESS_MONTHLY || JETPACK_MONTHLY_PLANS.includes( plan );
+	return WPCOM_MONTHLY_PLANS.includes( plan ) || JETPACK_MONTHLY_PLANS.includes( plan );
 }
 
 export function isNew( plan ) {

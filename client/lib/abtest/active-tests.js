@@ -205,11 +205,22 @@ export default {
 	secureYourBrand: {
 		datestamp: '20201026',
 		variations: {
-			test: 50,
-			control: 50,
+			test: 0,
+			control: 100,
 		},
 		defaultVariation: 'control',
 		allowExistingUsers: false,
 		countryCodeTargets: [ 'US' ],
+	},
+	monthlyPricing: {
+		datestamp: '20501030',
+		variations: {
+			control: 90,
+			treatment: 10,
+		},
+		defaultVariation: 'control',
+		allowExistingUsers: false,
+		countryCodeTargets: [ 'US' ],
+		localeTargets: [ 'en' ],
 	},
 };
