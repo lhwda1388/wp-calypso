@@ -6,6 +6,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { localize } from 'i18n-calypso';
 import debugFactory from 'debug';
 import { overSome, some } from 'lodash';
+import { useStripe, StripeHookProvider } from '@automattic/calypso-stripe';
 
 /**
  * Internal dependencies
@@ -33,7 +34,6 @@ import RecentRenewals from './recent-renewals';
 import PaymentRequestButton from './payment-request-button';
 import SubscriptionText from './subscription-text';
 import { useDebounce } from 'calypso/blocks/credit-card-form/helpers';
-import { useStripe, StripeHookProvider } from 'calypso/lib/stripe';
 
 const debug = debugFactory( 'calypso:checkout:payment:web-payment-box' );
 

@@ -5,6 +5,7 @@ import React, { useReducer, useEffect, useState } from 'react';
 import debugFactory from 'debug';
 import i18n, { useTranslate } from 'i18n-calypso';
 import { defaultRegistry } from '@automattic/composite-checkout';
+import { createStripePaymentMethod } from '@automattic/calypso-stripe';
 
 /**
  * Internal dependencies
@@ -19,7 +20,6 @@ import {
 	hasOnlyRenewalItems,
 	hasTransferProduct,
 } from 'calypso/lib/cart-values/cart-items';
-import { createStripePaymentMethod } from 'calypso/lib/stripe';
 import { prepareDomainContactDetailsForTransaction } from 'calypso/my-sites/checkout/composite-checkout/types/wpcom-store-state';
 import { tryToGuessPostalCodeFormat } from 'calypso/lib/postal-code';
 import { getSavedVariations } from 'calypso/lib/abtest';

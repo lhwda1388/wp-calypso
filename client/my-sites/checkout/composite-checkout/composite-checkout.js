@@ -9,6 +9,7 @@ import debugFactory from 'debug';
 import { useSelector, useDispatch, useStore } from 'react-redux';
 import { CheckoutProvider, checkoutTheme, defaultRegistry } from '@automattic/composite-checkout';
 import { useShoppingCart } from '@automattic/shopping-cart';
+import { useStripe } from '@automattic/calypso-stripe';
 
 /**
  * Internal dependencies
@@ -30,7 +31,6 @@ import QuerySitePurchases from 'calypso/components/data/query-site-purchases';
 import { StateSelect } from 'calypso/my-sites/domains/components/form';
 import { getPlan } from 'calypso/lib/plans';
 import PageViewTracker from 'calypso/lib/analytics/page-view-tracker';
-import { useStripe } from 'calypso/lib/stripe';
 import CheckoutTerms from '../checkout/checkout-terms.jsx';
 import useCreatePaymentMethods from './use-create-payment-methods';
 import {
