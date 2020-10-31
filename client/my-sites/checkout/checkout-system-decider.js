@@ -13,7 +13,7 @@ import { ShoppingCartProvider } from '@automattic/shopping-cart';
  */
 import wp from 'calypso/lib/wp';
 import CheckoutContainer from './checkout/checkout-container';
-import PrePurchaseNotices from './composite-checkout/prepurchase-notices';
+import PrePurchaseNotices from './composite-checkout/components/prepurchase-notices';
 import CompositeCheckout from './composite-checkout/composite-checkout';
 import { fetchStripeConfiguration } from './composite-checkout/payment-method-helpers';
 import { StripeHookProvider } from 'calypso/lib/stripe';
